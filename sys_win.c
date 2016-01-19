@@ -5,7 +5,7 @@ int32 CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmd
 {
     COM_ParseCmdLine(lpCmdLine);
 
-    int32 test = COM_CheckParm("-setalpha");
-    int32 value = Q_atoi(com_argv[test+1]);
+    //int32 test = COM_CheckParm("-setalpha");
+    //int32 value = Q_atoi(com_argv[test+1]);
     return 0;
 }
