@@ -1,11 +1,24 @@
 #include <windows.h>
 
+BOOL IsRunning = TRUE;
+
 LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM, lParam)
 {
     // catch any relevant messages here
-    // switch (uMsg)
+    switch (uMsg) {
+    case WM_KEYUP:
+        IsRunning = FALSE;
+        break;
+    case WM_ACTIVATE:
+    case WM_CREATE:
+    case WM_DESTROY:
+        IsRunning = FALSE;
+        break;
+    default:
+        Result = DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
     
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    return Result;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -49,7 +62,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     HDC DeviceContext = GETDC(mainwindow);
     PatBlt(DeviceContext, 0, 0, 800, 600, BLACKNESS);
-    ReleaseDV(mainWindow, DeviceContext);
+    ReleaseDC(mainWindow, DeviceContext);
+    
+    MSG msg;
+    LRESULT Result;
+
+    while (IsRunning)
+    {
+        // Check in with OS
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {    
+            TranslateMessage(&msg);
+            Result = DispatchMessage(&msg);
+        }
+    }
 
     return 0;
 }
