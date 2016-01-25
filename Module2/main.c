@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <windows.h>
 
 BOOL IsRunning = TRUE;
@@ -46,7 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     mainwindow = CreateWindowEx(
         0,
         "Module 2",
-        "Lesson 2.1",
+        "Lesson 2.3",
         WindowStyle,
         200,
         200,
@@ -63,18 +64,41 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     HDC DeviceContext = GETDC(mainwindow);
     PatBlt(DeviceContext, 0, 0, 800, 600, BLACKNESS);
     ReleaseDC(mainWindow, DeviceContext);
+
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency);
+    double SecondsPerTick =  1.0 / (double)Frequency.QuadPart;
+
+    LARGE_INTEGER Tick, Tock;
+    QueryPerformanceCounter(&Tick);
+
     
     MSG msg;
-    LRESULT Result;
-
     while (IsRunning)
     {
         // Check in with OS
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {    
             TranslateMessage(&msg);
-            Result = DispatchMessage(&msg);
+            DispatchMessage(&msg);
         }
+
+        // Update game if it's time to
+        
+        // Draw graphics if it's time to
+        
+
+        QueryPerformanceCounter(&Tock);
+
+        _int64 Interval = Tock.QuadPart - Tick.QuadPart;
+
+        double SecondsGoneBy = (double)Interval * SecondsPerTick;
+
+        char buf[64];
+        sprintf_s(buf, 64, "Total time: %3.7f \n", SecondsGoneBy);
+        OutputDebugString(buf);
+
+        QueryPerformanceCounter(&Tick);
     }
 
     return 0;
