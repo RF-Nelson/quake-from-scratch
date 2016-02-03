@@ -1,5 +1,7 @@
 #pragma once
 
+typedef enum {false, true} qboolean;
+
 #define MAX_NUM_ARGVS 50
 
 extern int32 com_argc;

@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <windows.h>
-#include <host.h>
+#include "quakdef.h"
+#include "winquake.h"
 
 static BOOL IsRunning = TRUE;
 
@@ -70,8 +69,10 @@ LRESULT CALLBACK MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM, lParam
     return Result;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+int32 WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+    COM_ParseCmdLine(lpCmdLine);
+
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = MainWndProc;
     wc.hInstance = hInstance;
@@ -95,7 +96,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     mainwindow = CreateWindowEx(
         0,
         "Module 2",
-        "Lesson 2.5",
+        "Lesson 2.6",
         WindowStyle,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -116,8 +117,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Host_Init();
 
     float oldtime = Sys_InitFloatTime();
-    float TargetTime = 1.0f / 60.0f;
-    float TimeAccumulated = 0;
 
     MSG msg;
     while (IsRunning)
@@ -130,13 +129,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
         float newtime = Sys_FloatTime();
-        TimeAccumulated += newtime - oldtime;
+        Host_Frame(newtime - oldtime);
         oldtime = newtime;
-
-        if (TimeAccumulated > TargetTime) {
-          Host_Frame(TargetTime);
-          TimeAccumulated -= TargetTime;
-        }
     }
 
     return 0;
