@@ -11,4 +11,4 @@
 * Re-optimize time-stepping to account for modern processors
 
 #### To do:
-Everything else.
+* Everything else
