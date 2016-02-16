@@ -9,6 +9,7 @@
 * Utilize Windows' `WinMain` entry point to create a re-sizable window
 * Create game loop
 * Re-optimize time-stepping to account for modern processors
+* Create and draw into a Win32 window
 
 #### To do:
 * Everything else
