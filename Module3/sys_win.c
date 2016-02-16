@@ -3,9 +3,81 @@
 int Running = 1;
 int BufferWidth = 640;
 int BufferHeight = 480;
+int BytesPerPixel = 1;
 void* BackBuffer;
 
-BITMAPINFO BitMapInfo = { 0 };
+typdef struct dibinfo_s
+{
+  BITMAPINFOHEADER bmiHeader;
+  RGBQUAD acolors[256];
+
+} dibinfo_t;
+
+dibinfo_t BitMapInfo = { 0 };
+
+void DrawRect(int X, int Y, int Width, int Height, unsigned char Red,
+  unsigned char Green, unsigned char Blue, unsigned char* buffer)
+{
+  if ((X + Width) > BufferWidth)
+  {
+    Width = BufferWidth - X ;
+  }
+
+  if((Y + Height) > BufferHeight)
+  {
+    Height = BufferHeight - Y;
+  }
+
+  unsigned int Color = (Red << 16) | Green << 8) | Blue)
+  // MOVE TO FIRST PIXEL
+  Buffer += (BufferWidth * BytesPerPixel * Y) + (X * BytesPerPixel)
+
+  int* BufferWalker = (int*)Buffer;
+  // LOOP THROUGH COLUMNS OF PIXELS
+  for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
+  {
+    // FOR EACH COLUMN, LOOP THROUGH EACH ROW OF PIXELS
+    for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
+    {
+      *BufferWalker = Color;
+      BufferWalker++;
+    }
+
+    Buffer += BufferWidth * BytesPerPixel;
+    BufferWalker = (int*)Buffer;
+  }
+}
+
+void DrawRect(int X, int Y, int Width, int Height, unsigned char Red)
+{
+  if ((X + Width) > BufferWidth)
+  {
+    Width = BufferWidth - X ;
+  }
+
+  if((Y + Height) > BufferHeight)
+  {
+    Height = BufferHeight - Y;
+  }
+
+  // MOVE TO FIRST PIXEL
+  Buffer += (BufferWidth * BytesPerPixel * Y) + (X * BytesPerPixel)
+
+  unsigned char* BufferWalker = Buffer;
+  // LOOP THROUGH COLUMNS OF PIXELS
+  for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
+  {
+    // FOR EACH COLUMN, LOOP THROUGH EACH ROW OF PIXELS
+    for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
+    {
+      *BufferWalker = Color;
+      BufferWalker++;
+    }
+
+    Buffer += BufferWidth * BytesPerPixel;
+    BufferWalker = Buffer;
+  }
+}
 
 LRESULT CALLBACK WindowProc(HWND hWnd. UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -43,7 +115,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   DWORD dwExStyle = 0;
   DWORD dwExtyle = WS_OVERLAPPEDWINDOW;
 
-  BOOL Fullscreen = true;
+  BOOL Fullscreen = FALSE;
 
   if (Fullscreen)
   {
@@ -74,7 +146,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   // CREATE WINDOW
   HWND MainWindow = CreateWindowEx(
-    dwExtyle, "Module 3", "Lesson 3.2", dwStyle,
+    dwExtyle, "Module 3", "Lesson 3.3", dwStyle,
     CW_USERDEFAULT, CW_USERDEFAULT,
     r.right - r.left, r.bottom - r.top,
     NULL, NULL, hInstance, 0
@@ -90,12 +162,24 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   // DEFINE BITMAP INFO
   BitMapInfo.bmiHeader.biSize = sizeof (BitMapInfo.bmiHeader);
   BitMapInfo.bmiHeader.biWidth = BufferWidth;
-  BitMapInfo.bmiHeader.biHeight = BufferHeight;
-  BitMapInfo.bmiHeader.biBitCount = 32;
+  BitMapInfo.bmiHeader.biHeight = -BufferHeight;
+  BitMapInfo.bmiHeader.biBitCount = 8 * BytesPerPixel;
   BitMapInfo.bmiHeader.biCompression = BI_RGB;
 
-  // 4 IS THE NUMBER OF BYTES PER PIXEL
-  BackBuffer = malloc(BufferWidth * BufferHeight * 4)
+  if (BytesPerPixel == 1)
+  {
+    BackBuffer = malloc(BufferWidth * BufferHeight * BytesPerPixel)
+    BitMapInfo.acolors[0].rgbRed = 0;
+    BitMapInfo.acolors[0].rgbGreen = 0;
+    BitMapInfo.acolors[0].rgbBlue = 0;
+
+    for (int i = 1; i < 256; i++)
+    {
+      BitMapInfo.acolors[i].rgbRed = rand() % 256;
+      BitMapInfo.acolors[i].rgbGreen = rand() % 256;
+      BitMapInfo.acolors[i].rgbBlue = rand() % 256;
+    }
+  }
 
   // MAIN LOOP
   MSG msg;
@@ -107,23 +191,42 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       DispatchMessage(&msg);
     }
 
-    int *MemoryWalker = (int*)BackBuffer;
-    for (int Height = 0; Height < BufferHeight; Height++)
+    if (BytesPerPixel == 4)
     {
-      for (int Width = 0; Width < BufferWidth; Width++)
+      int *MemoryWalker = (int*)BackBuffer;
+      for (int Height = 0; Height < BufferHeight; Height++)
       {
-        char Red = 0xFF;
-        char Green = 0;
-        char Blue = 0;
+        for (int Width = 0; Width < BufferWidth; Width++)
+        {
+          unsigned char Red = rand() % 256;
+          unsigned char Green = rand() % 256;
+          unsigned char Blue = rand() % 256;
 
-        *MemoryWalker++ (Red << 16) | Green << 8) | Blue);
+          *MemoryWalker++ = (Red << 16) | Green << 8) | Blue);
+        }
       }
+
+      DrawRect(10, 10, 800, 200, 255, 0, 255, BackBuffer);
     }
+    else if (BytesPerPixel == 1)
+    {
+      unsigned char *MemoryWalker = BackBuffer;
+      for (int Height = 0; Height < BufferHeight; Height++)
+      {
+        for (int Width = 0; Width < BufferWidth; Width++)
+        {
+          *MemoryWalker++ = rand() % 256;
+        }
+      }
+
+      DrawRect8(10, 10, 300, 150, 1, BackBuffer);
+    }
+
 
     HDC dc = GetDC(MainWindow);
     StretchDIBITS(dc, 0, 0, BufferWidth, BufferHeight,
       0, 0, BufferWidth, BufferHeight,
-      BackBuffer, &BitMapInfo, DIB_RGB_COLORS, SRCCOPY
+      BackBuffer, (BITMAPINFO*)&BitMapInfo, DIB_RGB_COLORS, SRCCOPY
     );
     DeleteDC(dc);
   }
