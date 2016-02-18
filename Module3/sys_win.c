@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <windows.h>
 
 int Running = 1;
@@ -48,7 +49,28 @@ void DrawRect(int X, int Y, int Width, int Height, unsigned char Red,
   }
 }
 
-void DrawRect(int X, int Y, int Width, int Height, unsigned char Red)
+void DrawPic8(int X, int Y, int Width, int Height, unsigned char* Source, unsigned char* Dest)
+{
+  Dest += (BufferWidth * BytesPerPixel * Y) + (X * BytesPerPixel);
+
+  unsigned char* BufferWalker = Dest;
+
+  for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
+  {
+    // FOR EACH COLUMN, LOOP THROUGH EACH ROW OF PIXELS
+    for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
+    {
+      *BufferWalker = *Source;
+      BufferWalker++;
+      Source++;
+    }
+
+    Dest += BufferWidth * BytesPerPixel;
+    BufferWalker = Dest;
+  }
+}
+
+void DrawRect8(int X, int Y, int Width, int Height, unsigned char Red)
 {
   if ((X + Width) > BufferWidth)
   {
@@ -78,6 +100,31 @@ void DrawRect(int X, int Y, int Width, int Height, unsigned char Red)
     BufferWalker = Buffer;
   }
 }
+
+void DrawPic32(int X, int Y, int Width, int Height, unsigned char* Source, unsigned char* Dest)
+{
+  Dest += (BufferWidth * BytesPerPixel * Y) + (X * BytesPerPixel);
+
+  unsigned int* BufferWalker = (unsingned int*)Dest;
+
+  for (int HeightWalker = 0; HeightWalker < Height; HeightWalker++)
+  {
+    // FOR EACH COLUMN, LOOP THROUGH EACH ROW OF PIXELS
+    for (int WidthWalker = 0; WidthWalker < Width; WidthWalker++)
+    {
+      int* ColorValue = (int*)&BitMapInfo.acolors[*Source];
+      *BufferWalker = *ColorValue;
+      BufferWalker++;
+      Source++;
+    }
+
+    Dest += BufferWidth * BytesPerPixel;
+    BufferWalker = (unsigned int*)Dest;
+  }
+
+}
+
+
 
 LRESULT CALLBACK WindowProc(HWND hWnd. UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -146,7 +193,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   // CREATE WINDOW
   HWND MainWindow = CreateWindowEx(
-    dwExtyle, "Module 3", "Lesson 3.3", dwStyle,
+    dwExtyle, "Module 3", "Lesson 3.4", dwStyle,
     CW_USERDEFAULT, CW_USERDEFAULT,
     r.right - r.left, r.bottom - r.top,
     NULL, NULL, hInstance, 0
@@ -166,20 +213,39 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
   BitMapInfo.bmiHeader.biBitCount = 8 * BytesPerPixel;
   BitMapInfo.bmiHeader.biCompression = BI_RGB;
 
-  if (BytesPerPixel == 1)
+  // if (BytesPerPixel == 1)
   {
-    BackBuffer = malloc(BufferWidth * BufferHeight * BytesPerPixel)
-    BitMapInfo.acolors[0].rgbRed = 0;
-    BitMapInfo.acolors[0].rgbGreen = 0;
-    BitMapInfo.acolors[0].rgbBlue = 0;
+    FILE *Palette = fopen("palette.lmp", "r");
+    void *RawData = malloc(256 * 3);
+    unsigned char *PaletteData = RawData;
+    size_t Ret = fread(PaletteData, 1, 768, Palette);
 
     for (int i = 1; i < 256; i++)
     {
-      BitMapInfo.acolors[i].rgbRed = rand() % 256;
-      BitMapInfo.acolors[i].rgbGreen = rand() % 256;
-      BitMapInfo.acolors[i].rgbBlue = rand() % 256;
+      BitMapInfo.acolors[i].rgbRed = *PaletteData++;
+      BitMapInfo.acolors[i].rgbGreen = *PaletteData++;
+      BitMapInfo.acolors[i].rgbBlue = *PaletteData++;
     }
-  }
+
+    free(RawData);
+    fclose(Palette);
+  // }
+
+  FILE * disc = fopen("DISC.lmp", "r");
+  int DiscWidth, discheight;
+  size_t RetVal = fread(&DiscWidth, 4, 1, Disc);
+  RetVal = fread(&DiscHeight, 4, 1, Disc);
+  void* DiscData = malloc(DiscWidth * DiscHeight);
+  RetVal = fread(DiscData, 1, DiscWidth * DiscHeight, Disc)
+  fclose(disc)
+
+  FILE *Pause = fopen("pause.lmp", "r");
+  int PauseWidth, PauseHeight;
+  RetVal = fread(&PauseWidth, 1, 4, Pause);
+  RetVal = fread(&PauseHeight, 1, 4, Pause);
+  void *PauseData = malloc(PauseWidth * PauseHeight);
+  RetVal = fread(PauseData, 1, PauseWidth * PauseHeight, Pause);
+  fclose(pause)
 
   // MAIN LOOP
   MSG msg;
@@ -205,8 +271,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           *MemoryWalker++ = (Red << 16) | Green << 8) | Blue);
         }
       }
-
-      DrawRect(10, 10, 800, 200, 255, 0, 255, BackBuffer);
+      DrawPic32(10, 10, PauseWidth, PauseHeight, PauseData, BackBuffer);
+      // DrawRect(10, 10, 800, 200, 255, 0, 255, BackBuffer);
     }
     else if (BytesPerPixel == 1)
     {
@@ -218,8 +284,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
           *MemoryWalker++ = rand() % 256;
         }
       }
-
-      DrawRect8(10, 10, 300, 150, 1, BackBuffer);
+      DrawPic(100, 100, DiscWidth, DiscHeight, DiscData);
+      // DrawRect8(10, 10, 300, 150, 1, BackBuffer);
     }
 
 
@@ -230,6 +296,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     );
     DeleteDC(dc);
   }
+
+  free(BackBuffer);
+  free(DiscData);
+  free(PauseData);
 
   return EXIT_SUCCESS;
 }
