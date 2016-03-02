@@ -1,8 +1,13 @@
 #include "quakedef.h"
 
+#include "time.h"
+#include "std.io"
+
 double realtime = 0;
 double oldrealtime = 0;
 double host_frametime = 0;
+
+extern void* BackBuffer;
 
 qboolean Host_FilterTime(float time) {
   realtime += time;
@@ -19,7 +24,7 @@ qboolean Host_FilterTime(float time) {
 
 void Host_Init(void)
 {
-
+  VID_Init();
 }
 
 void Host_Frame(float timestep)
@@ -28,12 +33,17 @@ void Host_Frame(float timestep)
     return;
   }
 
-  // update game
+  Sys_SendKeyEvents();
 
-  // render scene
+  VID_Update();
+}
+
+vod VID_Update(void)
+{
+
 }
 
 void Host_Shutdown(void)
 {
-
+  VID_Shutdown();
 }
